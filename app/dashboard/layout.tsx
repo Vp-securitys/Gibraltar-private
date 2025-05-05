@@ -67,8 +67,19 @@ export default function DashboardLayout({
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
-  const { signOut, profile } = useAuth()
-  const [scrolled, setScrolled] = useState(false)
+  const { user ,signOut, profile , loading :  authLoading } = useAuth()
+  const [scrolled, setScrolled] = useState(false);
+
+   // ENHANCED AUTH CHECK: Redirect if not authenticated
+   useEffect(() => {
+    // Only check after authentication process has completed (not during loading)
+    if (!authLoading && !user) {
+      console.log("Dashboard accessed without authentication. Redirecting to login page.");
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+  
+
 
   // Track scroll for shadow effect on header
   useEffect(() => {

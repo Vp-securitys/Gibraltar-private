@@ -1,10 +1,9 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, type ReactNode , useCallback } from "react"
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { supabase, type Profile } from "@/lib/supabase";
-import type { Session, User, AuthError } from "@supabase/supabase-js" // Import AuthError
-
+import type { Session, User, AuthError } from "@supabase/supabase-js"
 
 export interface Account {
   id: string;
@@ -28,12 +27,9 @@ export interface Transaction {
   account_type: "Personal" | "Business" | "Checkings" | "Savings";
 }
 
+// Update to include ALL dashboard routes - this will ensure any new dashboard routes are also protected
 const protectedDashboardRoutes = [
   "/dashboard",
-  "/dashboard/transfers",
-  "/dashboard/deposits",
-  "/dashboard/messages",
-  "/dashboard/profile",
 ];
 
 type AuthContextType = {
@@ -67,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
-  const [authError, setAuthError] = useState<AuthError | null>(null); // State to hold auth errors if needed
+  const [authError, setAuthError] = useState<AuthError | null>(null);
   const router = useRouter()
   const pathname = usePathname()
 
@@ -113,10 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           
           // Since setState doesn't immediately update, we'll pass the user directly
-        
           await fetchAccountsWithUser(currentUser);
-          
-       
           await fetchTransactionsWithUser(currentUser);
         } else {
           console.log("No authenticated user");
@@ -135,7 +128,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Helper functions that take user as a parameter to avoid state timing issues
     const fetchAccountsWithUser = async (user: User) => {
       try {
-       
         const { data, error } = await supabase
           .from("accounts")
           .select("*")
@@ -146,7 +138,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return [];
         }
         
-       
         setAccounts(data || []);
         return data || [];
       } catch (err) {
@@ -157,7 +148,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     const fetchTransactionsWithUser = async (user: User) => {
       try {
-       
         setTransactionsLoading(true);
         
         const { data, error } = await supabase
@@ -166,14 +156,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .eq("user_id", user.id)
           .order("transaction_date", { ascending: false });
         
-       
-        
         if (error) {
           console.error("Error fetching transactions:", error);
           return [];
         }
 
-       
         setTransactions(data as Transaction[] || []);
         return data as Transaction[] || [];
       } catch (err) {
@@ -234,23 +221,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);   // Include dependencies in the dependency array
 
-
-  // --- useEffect for route protection (keep as is) ---
+  // --- ENHANCED useEffect for route protection ---
   useEffect(() => {
-    if (!loading) {
-      const isProtected = protectedDashboardRoutes.some((route) =>
-        pathname?.startsWith(route)
-      );
+    if (loading) return; // Skip during initial load
+
+    // Check if the current path is any dashboard route
+    const isDashboardRoute = pathname?.startsWith('/dashboard');
+    
+    if (isDashboardRoute && !user) {
+      console.log("Unauthenticated user detected on dashboard route. Redirecting to login.");
+      router.push("/login");
+    }
   
-      if (isProtected && !user) {
-        console.log("Redirecting to login from protected dashboard route (unauthenticated)");
-        router.push("/login");
-      }
-  
-      if ((pathname === "/login" || pathname === "/signup") && user) {
-        console.log("Redirecting to dashboard from login/signup (authenticated)");
-        router.push("/dashboard");
-      }
+    if ((pathname === "/login" || pathname === "/signup") && user) {
+      console.log("Authenticated user on login/signup page. Redirecting to dashboard.");
+      router.push("/dashboard");
     }
   }, [loading, user, pathname, router]);
 
@@ -292,11 +277,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string, accessCode: string) => {
     setLoading(true);
     const { data: profileData, error: profileError } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("access_code", accessCode)
-    
-console.log(profileData)
+      .from("profiles")
+      .select("*")
+      .eq("access_code", accessCode)
+      
     if (profileError) {
       setAuthError({ message: "Invalid credentials or access code" } as AuthError);
       setLoading(false);
@@ -315,6 +299,8 @@ console.log(profileData)
     setProfile(null);
     setSession(null);
     setAccounts([]);
+    // Force redirect to login after sign out
+    router.push("/login");
   };
 
   // Fetch accounts from Supabase
@@ -338,7 +324,6 @@ console.log(profileData)
         return [];
       }
       
-     
       setAccounts(data || []);
       return data || [];
     } catch (err) {
@@ -346,7 +331,6 @@ console.log(profileData)
       return [];
     }
   };
-
 
   const getAccountById = (accountId: string): Account | undefined => {
     return accounts.find(account => account.id === accountId)
@@ -397,7 +381,6 @@ console.log(profileData)
     return transactions.find(transaction => transaction.id === transactionId)
   }
 
-
   useEffect(() => {
     if (user?.id && !loading) {
       fetchAccounts()
@@ -405,7 +388,6 @@ console.log(profileData)
       setAccounts([])
     }
   }, [user?.id, loading])
-
 
   // Provide the correctly named functions in the context value
   return (

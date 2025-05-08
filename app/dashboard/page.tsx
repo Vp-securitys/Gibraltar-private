@@ -190,20 +190,25 @@ export default function Dashboard() {
         {/* Left Column - User Welcome & Quick Actions */}
         <div className="lg:col-span-4 space-y-5"> {/* Adds consistent spacing between sections */}
           {/* User Welcome Card */}
-          <div className="bg-yellow-600 text-white shadow rounded-xl p-5">
-            <h2 className="text-xl font-bold mb-2">Hi, {profile?.firstName || profile?.email?.split('@')[0] || "there"}!</h2>
+          <div className="bg-yellow-600 text-white rounded-2xl p-6 shadow-xl ring-1 ring-yellow-500/20">
+            <h2 className="text-2xl font-bold mb-3 drop-shadow-sm">
+              Hi, {profile?.firstName || profile?.email?.split('@')[0] || "there"}!
+            </h2>
+
             <div className="flex items-center text-yellow-100 mb-1 text-sm">
-              <Clock size={14} className="mr-1" />
+              <Clock size={14} className="mr-2 opacity-80" />
               <span>{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
+
             <div className="flex items-center text-yellow-100 text-sm">
-              <Calendar size={14} className="mr-1" />
+              <Calendar size={14} className="mr-2 opacity-80" />
               <span>{currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
             </div>
           </div>
 
+
           {/* Quick Actions */}
-          <div className="bg-white shadow rounded-xl p-5">
+          <div className="bg-gradient-to-br from-white via-gray-50 to-gray-100 shadow-lg rounded-2xl border border-gray-200 p-5">
             <h2 className="text-base font-semibold mb-4">Quick Actions</h2>
             <div className="space-y-3">
               <a href="dashboard/transfer" className="block w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-3 rounded text-sm flex items-center justify-center transition">
@@ -228,7 +233,7 @@ export default function Dashboard() {
           </div>
 
           {/* Financial Summary */}
-          <div className="bg-white shadow rounded-xl p-5">
+          <div className="bg-gradient-to-br from-white via-gray-50 to-gray-100 shadow-lg rounded-2xl border border-gray-200 p-5">
             <h2 className="text-base font-semibold mb-4">Financial Summary</h2>
             <div className="space-y-3">
               <div className="bg-green-50 p-3 rounded">
@@ -251,57 +256,67 @@ export default function Dashboard() {
         {/* Right Column - Account Summary & Transactions */}
         <div className="lg:col-span-8">
           {/* Account Summary */}
-          <div className="bg-white shadow rounded-xl p-4 mb-4">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-lg font-semibold">Account Summary</h2>
+          <div className="bg-gradient-to-br from-white via-gray-50 to-gray-100 shadow-lg rounded-2xl p-6 sm:p-8 mb-6 border border-gray-200">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Account Summary</h2>
               <button
                 onClick={() => setShowBalances(!showBalances)}
-                className="text-gray-600 hover:text-gray-800 flex items-center text-xs"
+                className="text-gray-600 hover:text-gray-800 flex items-center text-sm font-medium transition-colors"
               >
                 {showBalances ? (
                   <>
-                    <EyeOff size={14} className="mr-1" />
+                    <EyeOff size={16} className="mr-1.5" />
                     <span>Hide Balances</span>
                   </>
                 ) : (
                   <>
-                    <Eye size={14} className="mr-1" />
+                    <Eye size={16} className="mr-1.5" />
                     <span>Show Balances</span>
                   </>
                 )}
               </button>
             </div>
 
-            <div className="mb-4">
-              <p className="text-xs text-gray-500">Total Available Balance</p>
-              <p className="text-2xl font-bold text-yellow-600">
+            <div className="mb-8">
+              <p className="text-sm text-gray-500 mb-1">Total Available Balance</p>
+              <p className="text-3xl font-extrabold text-yellow-600 tracking-tight drop-shadow-sm">
                 {showBalances ? formatCurrency(totalBalance) : "••••••••"}
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {accounts.map((account) => (
                 <div
                   key={account.id}
-                  className="bg-gray-50 p-3 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors"
+                  className="bg-white border border-gray-100 shadow-sm p-4 rounded-2xl hover:shadow-md transition-shadow duration-200 cursor-pointer group"
                   onClick={() => setSelectedAccount(account)}
                 >
-                  <h3 className="font-semibold text-base mb-1">{account.account_type}</h3>
-                  <p className="text-xs text-gray-500 mb-0.5">Account Number</p>
-                  <p className="font-medium text-xs mb-1">
-                    {showBalances ? account.account_number : maskAccountNumber(account.account_number)}
-                  </p>
-                  <p className="text-xs text-gray-500 mb-0.5">Available Balance</p>
-                  <p className="text-lg font-bold text-yellow-600">
-                    {showBalances ? formatCurrency(account.balance) : "••••••••"}
-                  </p>
+                  <h3 className="font-semibold text-base text-gray-800 mb-2 group-hover:text-yellow-700 transition-colors">
+                    {account.account_type}
+                  </h3>
+
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-500 mb-0.5">Account Number</p>
+                    <p className="font-medium text-sm text-gray-700">
+                      {showBalances ? account.account_number : maskAccountNumber(account.account_number)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">Available Balance</p>
+                    <p className="text-xl font-bold text-yellow-600 drop-shadow-sm">
+                      {showBalances ? formatCurrency(account.balance) : "••••••••"}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
+
+
           {/* Transaction History */}
-          <div className="bg-white shadow rounded-xl p-4">
+          <div className="bg-gradient-to-br from-white via-gray-50 to-gray-100 shadow-lg rounded-2xl border border-gray-200 p-4">
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-lg font-semibold">Transaction History</h2>
               <button
@@ -453,7 +468,7 @@ export default function Dashboard() {
 
       {/* Improved Account Details Modal */}
       {selectedAccount && (
-         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full relative overflow-hidden transform transition-all duration-300 scale-100 opacity-100">
             {/* Header */}
             <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 p-4">

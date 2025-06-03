@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { supabase, type Profile } from "@/lib/supabase";
 import type { Session, User, AuthError } from "@supabase/supabase-js"
@@ -67,7 +67,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
 
-  // --- useEffect for setting up auth state listener (keep as is) ---
+  // Auto-logout timer ref
+  const autoLogoutTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Function to start auto-logout timer
+  const startAutoLogoutTimer = () => {
+    // Clear any existing timer
+    if (autoLogoutTimerRef.current) {
+      clearTimeout(autoLogoutTimerRef.current);
+    }
+
+    // Set new timer for 50 seconds
+    autoLogoutTimerRef.current = setTimeout(async () => {
+      await signOut();
+    }, 60000); // 50 seconds
+  };
+
+  // Function to clear auto-logout timer
+  const clearAutoLogoutTimer = () => {
+    if (autoLogoutTimerRef.current) {
+      clearTimeout(autoLogoutTimerRef.current);
+      autoLogoutTimerRef.current = null;
+      console.log("Auto-logout timer cleared");
+    }
+  };
+
+  // --- useEffect for setting up auth state listener (updated with auto-logout) ---
   useEffect(() => {
     const setupAuth = async () => {
       try {
@@ -93,6 +118,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // IMPORTANT: Set the user state and wait for it to be updated
           setUser(currentUser);
           
+          // Start auto-logout timer when user is authenticated
+          startAutoLogoutTimer();
+          
           // Fetch profile data
           const { data: profileData, error: profileError } = await supabase
             .from("profiles")
@@ -117,6 +145,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(null);
           setAccounts([]);
           setTransactions([]);
+          // Clear timer if no user
+          clearAutoLogoutTimer();
         }
       } catch (err) {
         console.error("Authentication setup error:", err);
@@ -188,6 +218,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Set user state
             setUser(currentUser);
             
+            // Start auto-logout timer on successful authentication
+            startAutoLogoutTimer();
+            
             const { data: profileData, error: profileError } = await supabase
               .from("profiles")
               .select("*")
@@ -206,6 +239,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setProfile(null);
             setAccounts([]);
             setTransactions([]);
+            // Clear timer when user logs out
+            clearAutoLogoutTimer();
           }
         } catch (err) {
           console.error("Auth state change error:", err);
@@ -218,6 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Cleanup function
     return () => {
       subscription?.unsubscribe();
+      clearAutoLogoutTimer(); // Clear timer on component unmount
     };
   }, []);   // Include dependencies in the dependency array
 
@@ -288,17 +324,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    
+    // Note: Auto-logout timer will be started by the onAuthStateChange listener
+    // when the sign-in is successful
+    
     setLoading(false);
     return { error: signInError ?? null };
   };
 
-  // --- SIGN OUT Function (keep as is) ---
+  // --- SIGN OUT Function (updated to clear timer) ---
   const signOut = async () => {
+    console.log("Signing out user");
+    
+    // Clear the auto-logout timer
+    clearAutoLogoutTimer();
+    
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
     setSession(null);
     setAccounts([]);
+    setTransactions([]);
+    
     // Force redirect to login after sign out
     router.push("/login");
   };
@@ -312,7 +359,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return [];
     }
     
-    console.log("fetchAccounts: User found, fetching accounts for", currentUser.id);
     try {
       const { data, error } = await supabase
         .from("accounts")

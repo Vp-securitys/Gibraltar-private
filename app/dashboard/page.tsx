@@ -261,7 +261,7 @@ export default function Dashboard() {
               <h2 className="text-xl font-semibold text-gray-900">Account Summary</h2>
               <button
                 onClick={() => setShowBalances(!showBalances)}
-                className="text-gray-600 hover:text-gray-800 flex items-center text-sm font-medium transition-colors"
+                className="text-gray-600 hover:text-gray-800 flex items-center text-sm font-medium transition-colors duration-200 bg-white px-3 py-2 rounded-lg border border-gray-200 hover:border-gray-300 shadow-sm"
               >
                 {showBalances ? (
                   <>
@@ -277,36 +277,59 @@ export default function Dashboard() {
               </button>
             </div>
 
+            {/* Enhanced Total Balance Section */}
             <div className="mb-8">
-              <p className="text-sm text-gray-500 mb-1">Total Available Balance</p>
-              <p className="text-3xl font-extrabold text-yellow-600 tracking-tight drop-shadow-sm">
-                {showBalances ? formatCurrency(totalBalance) : "••••••••"}
-              </p>
+              <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-2xl p-6 shadow-md relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-full -translate-y-16 translate-x-16 opacity-30"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-black uppercase tracking-wide">Total Available Balance</p>
+                    {/* <div className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                      Live
+                    </div> */}
+                  </div>
+                 <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-yellow-700 tracking-tight drop-shadow-sm mb-1">
+                    {showBalances ? formatCurrency(totalBalance) : "••••••••"}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Across {accounts.length} account{accounts.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
             </div>
 
+            {/* Enhanced Account Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {accounts.map((account) => (
+              {accounts.map((account, index) => (
                 <div
                   key={account.id}
-                  className="bg-white border border-gray-100 shadow-sm p-4 rounded-2xl hover:shadow-md transition-shadow duration-200 cursor-pointer group"
+                  className="bg-white border border-gray-200 shadow-md p-5 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group relative overflow-hidden"
                   onClick={() => setSelectedAccount(account)}
                 >
-                  <h3 className="font-semibold text-base text-gray-800 mb-2 group-hover:text-yellow-700 transition-colors">
-                    {account.account_type}
-                  </h3>
+                  {/* Subtle background pattern */}
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full -translate-y-10 translate-x-10 opacity-50 group-hover:opacity-70 transition-opacity"></div>
 
-                  <div className="mb-3">
-                    <p className="text-xs text-gray-500 mb-0.5">Account Number</p>
-                    <p className="font-medium text-sm text-gray-700">
-                      {showBalances ? account.account_number : maskAccountNumber(account.account_number)}
-                    </p>
-                  </div>
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-base text-gray-800 group-hover:text-yellow-700 transition-colors">
+                        {account.account_type}
+                      </h3>
+                      <div className="w-3 h-3 bg-green-400 rounded-full shadow-sm animate-pulse"></div>
+                    </div>
 
-                  <div>
-                    <p className="text-xs text-gray-500 mb-0.5">Available Balance</p>
-                    <p className="text-xl font-bold text-yellow-600 drop-shadow-sm">
-                      {showBalances ? formatCurrency(account.balance) : "••••••••"}
-                    </p>
+                    <div className="mb-4">
+                      <p className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wide">Account Number</p>
+                      <p className="font-mono text-sm text-gray-700 bg-gray-50 px-2 py-1 rounded border">
+                        {showBalances ? account.account_number : maskAccountNumber(account.account_number)}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wide">Available Balance</p>
+                      <p className="text-2xl font-bold text-yellow-600 drop-shadow-sm">
+                        {showBalances ? formatCurrency(account.balance) : "••••••••"}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}

@@ -405,7 +405,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("user_id", currentUser.id)
         .order("transaction_date", { ascending: false });
       
-      console.log("fetchTransactions: Raw data received:", data);
+      // console.log("fetchTransactions: Raw data received:", data);
       
       if (error) {
         console.error("Error fetching transactions:", error);
